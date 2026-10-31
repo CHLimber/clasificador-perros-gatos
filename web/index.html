@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <title>Perros y Gatos</title>
+
+    <style>
+      :root {
+        --fondo: #f6f3ee;
+        --panel: #ffffff;
+        --texto: #1f1d1a;
+        --suave: #6b665e;
+        --borde: #e4ded4;
+        --perro: #d97706;
+        --perro-claro: #fef3c7;
+        --gato: #7c3aed;
+        --gato-claro: #ede9fe;
+        --ok: #16a34a;
+        --error: #dc2626;
+        --acento: #1f1d1a;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--fondo);
+        color: var(--texto);
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+      header {
+        display: flex; align-items: center; gap: 16px;
+        padding: 10px 24px; border-bottom: 1px solid var(--borde); background: var(--panel);
+      }
+      header img { width: 42px; height: 42px; }
+      header h1 { margin: 0; font-size: 1.35rem; }
+      header p { margin: 1px 0 0; color: var(--suave); font-size: .9rem; }
+      .pestanas { margin-left: auto; display: flex; gap: 6px; }
+      button {
+        font: inherit; cursor: pointer; border-radius: 10px; padding: 9px 16px;
+        border: 1px solid var(--borde); background: var(--panel); color: var(--texto);
+      }
+      button:hover:not(:disabled) { border-color: var(--suave); }
+      button:disabled { opacity: .45; cursor: not-allowed; }
+      button.primario { background: var(--acento); color: #fff; border-color: var(--acento); font-weight: 600; }
+      button.activo { background: var(--acento); color: #fff; border-color: var(--acento); }
+
+      main { max-width: 1400px; margin: 0 auto; padding: 14px 24px; width: 100%; }
+      .vista { display: none; }
+      .vista.visible { display: block; }
+
+      .fuente {
+        display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+        background: var(--panel); border: 1px solid var(--borde); border-radius: 14px;
+        padding: 10px 16px; margin-bottom: 14px;
+      }
+      .fuente .sello {
+        display: flex; align-items: center; gap: 10px; font-size: .92rem; color: var(--suave);
+      }
+      .ms-logo { display: grid; grid-template-columns: 9px 9px; gap: 2px; }
+      .ms-logo span { width: 9px; height: 9px; }
+      .fuente .acciones { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+      .fuente label.retardo { display: flex; align-items: center; gap: 8px; color: var(--suave); font-size: .92rem; }
+
+      .zona {
+        display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px;
+      }
+      .escenario {
+        background: var(--panel); border: 1px solid var(--borde); border-radius: 18px; padding: 16px;
+        display: flex; flex-direction: column; gap: 12px;
+      }
+      .marco {
+        position: relative; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden;
+        background: #ebe6dd; display: grid; place-items: center;
+      }
+      .marco img { width: 100%; height: 100%; object-fit: contain; transition: filter .4s; }
+      .marco .vacio { color: var(--suave); text-align: center; padding: 20px; }
+      .marco.analizando img { filter: saturate(.4) brightness(.92); }
+      .escaner {
+        position: absolute; left: 0; right: 0; height: 3px; top: 0; display: none;
+        background: #22d3ee; box-shadow: 0 0 18px 6px rgba(34, 211, 238, .55);
+      }
+      .marco.analizando .escaner { display: block; animation: barrer 1.1s ease-in-out infinite alternate; }
+      @keyframes barrer { from { top: 0; } to { top: calc(100% - 3px); } }
+      .sello-resultado {
+        position: absolute; top: 16px; right: 16px; padding: 10px 18px; border-radius: 12px;
+        font-size: 2rem; font-weight: 800; color: #fff; transform: scale(.4); opacity: 0;
+        transition: transform .35s cubic-bezier(.2, 1.6, .4, 1), opacity .2s;
+      }
+      .sello-resultado.visible { transform: scale(1); opacity: 1; }
+      .sello-resultado.perro { background: var(--perro); }
+      .sello-resultado.gato { background: var(--gato); }
+
+      .lectura { display: grid; grid-template-columns: 120px 1fr; gap: 18px; align-items: center; }
+      .ojo { text-align: center; font-size: .78rem; color: var(--suave); }
+      .ojo canvas {
+        width: 120px; height: 120px; image-rendering: pixelated; border-radius: 8px;
+        border: 1px solid var(--borde); background: #ddd; display: block; margin-bottom: 4px;
+      }
+      .estado { font-size: 1.05rem; color: var(--suave); min-height: 1.5em; }
+      .estado strong { color: var(--texto); }
+      .barra {
+        position: relative; height: 34px; border-radius: 10px; overflow: hidden; margin-top: 10px;
+        background: var(--gato-claro); display: flex;
+      }
+      .barra .parte-perro {
+        background: var(--perro); width: 50%; transition: width .9s ease;
+      }
+      .barra .parte-gato { flex: 1; background: var(--gato); }
+      .barra .etq {
+        position: absolute; top: 0; bottom: 0; display: flex; align-items: center;
+        color: #fff; font-weight: 700; font-size: .9rem; padding: 0 12px;
+      }
+      .barra .etq.izq { left: 0; }
+      .barra .etq.der { right: 0; }
+      .progreso { height: 4px; background: var(--borde); border-radius: 4px; overflow: hidden; margin-top: 10px; }
+      .progreso div { height: 100%; width: 0; background: #22d3ee; }
+      .verdad { margin-top: 8px; font-size: .95rem; min-height: 1.4em; }
+      .verdad .ok { color: var(--ok); font-weight: 700; }
+      .verdad .mal { color: var(--error); font-weight: 700; }
+
+      .lateral { display: flex; flex-direction: column; gap: 16px; }
+      .marcador {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+      }
+      .cifra {
+        background: var(--panel); border: 1px solid var(--borde); border-radius: 14px; padding: 12px 14px;
+      }
+      .cifra b { display: block; font-size: 1.9rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+      .cifra span { font-size: .82rem; color: var(--suave); }
+      .cifra.perro b { color: var(--perro); }
+      .cifra.gato b { color: var(--gato); }
+
+      .tanda {
+        background: var(--panel); border: 1px solid var(--borde); border-radius: 18px; padding: 14px;
+        flex: 1; min-height: 240px;
+      }
+      .tanda h3 { margin: 2px 4px 12px; font-size: 1rem; display: flex; justify-content: space-between; }
+      .tanda h3 span { color: var(--suave); font-weight: 400; }
+      .rejilla {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px;
+        max-height: 430px; overflow-y: auto; padding: 2px;
+      }
+      .mini {
+        position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; cursor: pointer;
+        border: 3px solid transparent; background: #eee;
+      }
+      .mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .mini.actual { border-color: #22d3ee; }
+      .mini.perro { border-color: var(--perro); }
+      .mini.gato { border-color: var(--gato); }
+      .mini .chip {
+        position: absolute; bottom: 3px; left: 3px; right: 3px; text-align: center; border-radius: 6px;
+        font-size: .7rem; font-weight: 700; color: #fff; padding: 1px 0;
+      }
+      .mini.perro .chip { background: var(--perro); }
+      .mini.gato .chip { background: var(--gato); }
+      .mini .marca {
+        position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 50%;
+        display: grid; place-items: center; font-size: .75rem; font-weight: 800; color: #fff;
+      }
+      .mini .marca.ok { background: var(--ok); }
+      .mini .marca.mal { background: var(--error); }
+      .soltar {
+        border: 2px dashed var(--borde); border-radius: 12px; padding: 30px 14px; text-align: center;
+        color: var(--suave);
+      }
+      body.arrastrando .tanda { outline: 3px dashed #22d3ee; outline-offset: 4px; }
+
+      /* Cámara */
+      .camara { display: grid; place-items: center; gap: 14px; }
+      .camara canvas { max-width: 100%; border-radius: 14px; background: #ddd; }
+      #resultado { font-weight: 800; font-size: 4.5rem; text-align: center; }
+
+      footer {
+        border-top: 1px solid var(--borde); background: var(--panel); color: var(--suave);
+        padding: 8px 24px; font-size: .8rem; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+      }
+      footer a { color: inherit; }
+
+      /* En escritorio todo cabe en la ventana (p. ej. con F11): solo la rejilla hace scroll */
+      @media (min-width: 901px) and (min-height: 560px) {
+        body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        main { flex: 1; min-height: 0; }
+        .vista.visible { display: flex; flex-direction: column; height: 100%; }
+        .zona { flex: 1; min-height: 0; }
+        .escenario { min-height: 0; }
+        .marco { aspect-ratio: auto; flex: 1; min-height: 0; }
+        .lateral { min-height: 0; gap: 12px; }
+        .tanda { min-height: 0; display: flex; flex-direction: column; }
+        .rejilla { flex: 1; min-height: 0; max-height: none; align-content: start; }
+        .soltar { flex: 1; display: grid; place-items: center; }
+        .camara { height: 100%; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: 10px; }
+        .camara canvas { height: 100%; width: auto; }
+        #resultado { font-size: 3.5rem; }
+      }
+
+      @media (max-width: 900px) {
+        .zona { grid-template-columns: 1fr; }
+        header { flex-wrap: wrap; padding: 14px 16px; }
+        .pestanas { margin-left: 0; }
+        main { padding: 16px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <img src="assets/LogotipoV2-Simple.png" alt="">
+      <div>
+        <h1>Clasificador de perros y gatos</h1>
+        <p>Red neuronal convolucional ejecutándose en el navegador con TensorFlow.js</p>
+      </div>
+      <nav class="pestanas">
+        <button id="tab-tanda" class="activo" onclick="mostrarVista('tanda')">Tanda de fotos</button>
+        <button id="tab-camara" onclick="mostrarVista('camara')">Cámara en vivo</button>
+      </nav>
+    </header>
+
+    <main>
+      <!-- ============ Vista: tanda de fotos ============ -->
+      <section id="vista-tanda" class="vista visible">
+        <div class="fuente">
+          <div class="sello">
+            <div class="ms-logo" aria-hidden="true">
+              <span style="background:#f25022"></span><span style="background:#7fba00"></span>
+              <span style="background:#00a4ef"></span><span style="background:#ffb900"></span>
+            </div>
+            <div>
+              <strong style="color: var(--texto)">Dataset de entrenamiento: Microsoft Kaggle Cats and Dogs (Asirra)</strong><br>
+              El modelo aprendió con este material de Microsoft; las fotos de muestra provienen del mismo dataset.
+            </div>
+          </div>
+          <div class="acciones">
+            <button onclick="cargarMuestras()">Usar fotos de Microsoft</button>
+            <button onclick="document.getElementById('archivos').click()">Elegir mis fotos…</button>
+            <input type="file" id="archivos" accept="image/*" multiple hidden>
+            <label class="retardo">
+              Tiempo de análisis
+              <input type="range" id="retardo" min="0.5" max="4" step="0.5" value="2">
+              <span id="retardo-valor">2,0 s</span>
+            </label>
+            <button id="btn-clasificar" class="primario" onclick="clasificarTanda()" disabled>▶ Clasificar tanda</button>
+          </div>
+        </div>
+
+        <div class="zona">
+          <div class="escenario">
+            <div class="marco" id="marco">
+              <div class="vacio" id="vacio">Carga las fotos de Microsoft o elige tus propias imágenes<br>(también puedes arrastrarlas aquí)</div>
+              <img id="foto" alt="" hidden>
+              <div class="escaner"></div>
+              <div class="sello-resultado" id="sello"></div>
+            </div>
+            <div class="lectura">
+              <div class="ojo">
+                <canvas id="vista-modelo" width="100" height="100"></canvas>
+                Lo que ve la red<br>(100×100, gris)
+              </div>
+              <div>
+                <div class="estado" id="estado">Modelo cargando…</div>
+                <div class="barra">
+                  <div class="parte-perro" id="parte-perro"></div>
+                  <div class="parte-gato"></div>
+                  <span class="etq izq" id="etq-perro">Perro —</span>
+                  <span class="etq der" id="etq-gato">— Gato</span>
+                </div>
+                <div class="progreso"><div id="progreso"></div></div>
+                <div class="verdad" id="verdad"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="lateral">
+            <div class="marcador">
+              <div class="cifra perro"><b id="n-perros">0</b><span>Perros</span></div>
+              <div class="cifra gato"><b id="n-gatos">0</b><span>Gatos</span></div>
+              <div class="cifra"><b id="n-precision">—</b><span id="t-precision">Aciertos</span></div>
+            </div>
+            <div class="tanda">
+              <h3>Tanda <span id="conteo">0 fotos</span></h3>
+              <div class="rejilla" id="rejilla"></div>
+              <div class="soltar" id="soltar">Aún no hay fotos en la tanda</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Vista: cámara (versión original del docente) ============ -->
+      <section id="vista-camara" class="vista">
+        <div class="camara">
+          <video id="video" playsinline autoplay style="width: 1px;"></video>
+          <button id="cambiar-camara" onclick="cambiarCamara();">Cambiar cámara</button>
+          <canvas id="canvas" width="400" height="400"></canvas>
+          <div id="resultado"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Fuente de datos: <a href="https://www.microsoft.com/en-us/download/details.aspx?id=54765" target="_blank" rel="noopener">Microsoft — Kaggle Cats and Dogs Dataset</a>
+        · Elson, Douceur, Howell y Saul, «Asirra», Microsoft Research (2007).</span>
+      <span style="margin-left:auto">Modelo: CNN con aumento de datos (modeloCNN_AD) · TensorFlow.js</span>
+    </footer>
+
+    <canvas id="otrocanvas" width="100" height="100" style="display: none"></canvas>
+    <canvas id="lienzo" width="400" height="400" style="display: none"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+
+  <script type="text/javascript">
+
+    var tamano = 400;
+    var video = document.getElementById("video");
+    var canvas = document.getElementById("canvas");
+    var otrocanvas = document.getElementById("otrocanvas");
+    var lienzo = document.getElementById("lienzo");
+    var ctx = canvas.getContext("2d");
+    var currentStream = null;
+    var facingMode = "user";
+    var camaraIniciada = false;
+
+    var modelo = null;
+    var tanda = [];          // { src, etiqueta (real, opcional), prediccion, prob }
+    var clasificando = false;
+    var detener = false;
+
+    (async() => {
+      modelo = await tf.loadLayersModel("modelo/model.json");
+      document.getElementById("estado").textContent = "Modelo listo. Carga una tanda de fotos.";
+      actualizarBoton();
+    })();
+
+    // ---------- Navegación ----------
+    function mostrarVista(nombre) {
+      document.getElementById("vista-tanda").classList.toggle("visible", nombre == "tanda");
+      document.getElementById("vista-camara").classList.toggle("visible", nombre == "camara");
+      document.getElementById("tab-tanda").classList.toggle("activo", nombre == "tanda");
+      document.getElementById("tab-camara").classList.toggle("activo", nombre == "camara");
+      if (nombre == "camara" && !camaraIniciada) {
+        camaraIniciada = true;
+        mostrarCamara();
+      }
+    }
+
+    // ---------- Carga de la tanda ----------
+    async function cargarMuestras() {
+      var resp = await fetch("muestras/muestras.json");
+      var datos = await resp.json();
+      tanda = datos.imagenes.map(m => ({ src: "muestras/" + m.archivo, etiqueta: m.etiqueta }));
+      pintarTanda();
+    }
+
+    document.getElementById("archivos").addEventListener("change", function(e) {
+      agregarArchivos(e.target.files);
+      e.target.value = "";
+    });
+
+    function agregarArchivos(archivos) {
+      var nuevas = [...archivos].filter(f => f.type.startsWith("image/"))
+        .map(f => ({ src: URL.createObjectURL(f), etiqueta: etiquetaPorNombre(f.name) }));
+      if (nuevas.length == 0) return;
+      tanda = nuevas;
+      pintarTanda();
+    }
+
+    // Si el archivo se llama "perro_..." o "cat.123.jpg" se usa como etiqueta real
+    function etiquetaPorNombre(nombre) {
+      nombre = nombre.toLowerCase();
+      if (/(perro|dog)/.test(nombre)) return "perro";
+      if (/(gato|cat)/.test(nombre)) return "gato";
+      return null;
+    }
+
+    document.addEventListener("dragover", e => { e.preventDefault(); document.body.classList.add("arrastrando"); });
+    document.addEventListener("dragleave", e => { if (!e.relatedTarget) document.body.classList.remove("arrastrando"); });
+    document.addEventListener("drop", e => {
+      e.preventDefault();
+      document.body.classList.remove("arrastrando");
+      agregarArchivos(e.dataTransfer.files);
+    });
+
+    function pintarTanda() {
+      var rejilla = document.getElementById("rejilla");
+      rejilla.innerHTML = "";
+      tanda.forEach((item, i) => {
+        item.prediccion = null;
+        var div = document.createElement("div");
+        div.className = "mini";
+        div.innerHTML = '<img src="' + item.src + '" alt="">';
+        div.onclick = async () => {
+          if (clasificando || modelo == null) return;
+          clasificando = true;
+          await clasificarUna(i, Number(sliderRetardo.value));
+          clasificando = false;
+        };
+        item.nodo = div;
+        rejilla.appendChild(div);
+      });
+      document.getElementById("soltar").style.display = tanda.length ? "none" : "";
+      document.getElementById("conteo").textContent = tanda.length + " fotos";
+      reiniciarEscenario();
+      actualizarMarcador();
+      actualizarBoton();
+    }
+
+    function actualizarBoton() {
+      var btn = document.getElementById("btn-clasificar");
+      btn.disabled = modelo == null || (tanda.length == 0 && !clasificando);
+      btn.textContent = clasificando ? "■ Detener" : "▶ Clasificar tanda";
+    }
+
+    var sliderRetardo = document.getElementById("retardo");
+    sliderRetardo.addEventListener("input", () => {
+      document.getElementById("retardo-valor").textContent =
+        Number(sliderRetardo.value).toFixed(1).replace(".", ",") + " s";
+    });
+
+    // ---------- Clasificación ----------
+    async function clasificarTanda() {
+      if (clasificando) { detener = true; return; }
+      clasificando = true;
+      detener = false;
+      tanda.forEach(item => {
+        item.prediccion = null;
+        item.nodo.className = "mini";
+        item.nodo.querySelectorAll(".chip, .marca").forEach(n => n.remove());
+      });
+      actualizarMarcador();
+      actualizarBoton();
+
+      for (var i = 0; i < tanda.length && !detener; i++) {
+        var segundos = Number(sliderRetardo.value);
+        await clasificarUna(i, segundos);
+        if (!detener) await esperar(Math.max(900, segundos * 600));
+      }
+
+      clasificando = false;
+      actualizarBoton();
+      if (!detener) mostrarResumen();
+    }
+
+    async function clasificarUna(i, segundos) {
+      var item = tanda[i];
+      tanda.forEach(t => t.nodo.classList.remove("actual"));
+      item.nodo.classList.add("actual");
+      item.nodo.scrollIntoView({ block: "nearest", behavior: "smooth" });
+
+      var img = await cargarImagen(item.src);
+      var foto = document.getElementById("foto");
+      foto.src = item.src;
+      foto.hidden = false;
+      document.getElementById("vacio").style.display = "none";
+
+      var sello = document.getElementById("sello");
+      sello.className = "sello-resultado";
+      document.getElementById("verdad").innerHTML = "";
+      document.getElementById("parte-perro").style.width = "50%";
+      document.getElementById("etq-perro").textContent = "Perro —";
+      document.getElementById("etq-gato").textContent = "— Gato";
+      document.getElementById("estado").innerHTML = "Analizando foto <strong>" + (i + 1) + " de " + tanda.length + "</strong>…";
+      document.getElementById("marco").classList.add("analizando");
+
+      // La predicción es instantánea; el retardo es solo para que se aprecie en el video
+      var prob = predecirImagen(img);
+      await animarProgreso(segundos * 1000);
+
+      document.getElementById("marco").classList.remove("analizando");
+      var esPerro = prob > .5;
+      var clase = esPerro ? "perro" : "gato";
+      var confianza = esPerro ? prob : 1 - prob;
+      item.prediccion = clase;
+      item.prob = prob;
+
+      sello.textContent = esPerro ? "🐶 Perro" : "🐱 Gato";
+      sello.className = "sello-resultado visible " + clase;
+      document.getElementById("parte-perro").style.width = (prob * 100) + "%";
+      document.getElementById("etq-perro").textContent = "Perro " + porcentaje(prob);
+      document.getElementById("etq-gato").textContent = porcentaje(1 - prob) + " Gato";
+      document.getElementById("estado").innerHTML = "Es un <strong>" + clase + "</strong> con " +
+        "<strong>" + porcentaje(confianza) + "</strong> de confianza (salida sigmoide = " + prob.toFixed(3) + ")";
+
+      if (item.etiqueta) {
+        var acierto = item.etiqueta == clase;
+        document.getElementById("verdad").innerHTML = "Etiqueta real en el dataset: " + item.etiqueta + " · " +
+          (acierto ? '<span class="ok">✓ Acierto</span>' : '<span class="mal">✗ Error</span>');
+      }
+
+      item.nodo.className = "mini " + clase;
+      item.nodo.querySelectorAll(".chip, .marca").forEach(n => n.remove());
+      item.nodo.insertAdjacentHTML("beforeend", '<span class="chip">' + (esPerro ? "Perro" : "Gato") + " " + porcentaje(confianza) + "</span>");
+      if (item.etiqueta) {
+        item.nodo.insertAdjacentHTML("beforeend", item.etiqueta == clase
+          ? '<span class="marca ok">✓</span>' : '<span class="marca mal">✗</span>');
+      }
+      actualizarMarcador();
+    }
+
+    // Mismo preprocesamiento que en el entrenamiento: 100x100, escala de grises, valores 0-1
+    function predecirImagen(img) {
+      var c = lienzo.getContext("2d");
+      c.drawImage(img, 0, 0, tamano, tamano);
+      resample_single(lienzo, 100, 100, otrocanvas);
+      var imgData = otrocanvas.getContext("2d").getImageData(0, 0, 100, 100);
+
+      var vista = document.getElementById("vista-modelo").getContext("2d");
+      var gris = vista.createImageData(100, 100);
+      var arr = [];
+      var fila = [];
+      for (var p = 0; p < imgData.data.length; p += 4) {
+        var g = (imgData.data[p] + imgData.data[p+1] + imgData.data[p+2]) / 3;
+        gris.data[p] = gris.data[p+1] = gris.data[p+2] = g;
+        gris.data[p+3] = 255;
+        fila.push([g / 255]);
+        if (fila.length == 100) {
+          arr.push(fila);
+          fila = [];
+        }
+      }
+      vista.putImageData(gris, 0, 0);
+
+      return tf.tidy(() => modelo.predict(tf.tensor4d([arr])).dataSync()[0]);
+    }
+
+    function actualizarMarcador() {
+      var hechas = tanda.filter(t => t.prediccion);
+      var perros = hechas.filter(t => t.prediccion == "perro").length;
+      document.getElementById("n-perros").textContent = perros;
+      document.getElementById("n-gatos").textContent = hechas.length - perros;
+      var conEtiqueta = hechas.filter(t => t.etiqueta);
+      var aciertos = conEtiqueta.filter(t => t.etiqueta == t.prediccion).length;
+      document.getElementById("n-precision").textContent = conEtiqueta.length ? aciertos + "/" + conEtiqueta.length : "—";
+      document.getElementById("t-precision").textContent = conEtiqueta.length
+        ? "Aciertos (" + Math.round(aciertos / conEtiqueta.length * 100) + " %)" : "Aciertos";
+    }
+
+    function mostrarResumen() {
+      var perros = tanda.filter(t => t.prediccion == "perro").length;
+      var conEtiqueta = tanda.filter(t => t.etiqueta);
+      var texto = "Tanda terminada: <strong>" + perros + " perros</strong> y <strong>" + (tanda.length - perros) + " gatos</strong>.";
+      if (conEtiqueta.length) {
+        var aciertos = conEtiqueta.filter(t => t.etiqueta == t.prediccion).length;
+        texto += " Precisión: <strong>" + Math.round(aciertos / conEtiqueta.length * 100) + " %</strong>.";
+      }
+      document.getElementById("estado").innerHTML = texto;
+    }
+
+    function reiniciarEscenario() {
+      document.getElementById("foto").hidden = true;
+      document.getElementById("vacio").style.display = tanda.length ? "none" : "block";
+      document.getElementById("sello").className = "sello-resultado";
+      document.getElementById("verdad").innerHTML = "";
+      document.getElementById("parte-perro").style.width = "50%";
+      document.getElementById("progreso").style.width = "0";
+      if (modelo) document.getElementById("estado").textContent = tanda.length
+        ? "Tanda lista. Pulsa «Clasificar tanda» o haz clic en una foto."
+        : "Modelo listo. Carga una tanda de fotos.";
+      if (tanda.length) {
+        var foto = document.getElementById("foto");
+        foto.src = tanda[0].src;
+        foto.hidden = false;
+      }
+    }
+
+    // ---------- Utilidades ----------
+    function cargarImagen(src) {
+      return new Promise((ok, mal) => {
+        var img = new Image();
+        img.onload = () => ok(img);
+        img.onerror = mal;
+        img.src = src;
+      });
+    }
+
+    function esperar(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    function animarProgreso(ms) {
+      var barra = document.getElementById("progreso");
+      var inicio = performance.now();
+      return new Promise(r => {
+        (function paso(t) {
+          var f = Math.min(1, (t - inicio) / ms);
+          barra.style.width = (f * 100) + "%";
+          if (f < 1) requestAnimationFrame(paso); else r();
+        })(inicio);
+      });
+    }
+
+    function porcentaje(x) { return (x * 100).toFixed(1).replace(".", ",") + " %"; }
+
+    // ---------- Cámara en vivo (lógica original) ----------
+    function mostrarCamara() {
+      var opciones = {
+        audio: false,
+        video: {
+          width: tamano, height: tamano
+        }
+      }
+
+      if (navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia(opciones)
+            .then(function(stream) {
+              currentStream = stream;
+              video.srcObject = currentStream;
+              procesarCamara();
+              predecir();
+            })
+            .catch(function(err) {
+              alert("No se pudo utilizar la cámara :(");
+              console.log(err);
+            })
+      } else {
+        alert("No existe la función getUserMedia");
+      }
+    }
+
+    function cambiarCamara() {
+          if (currentStream) {
+              currentStream.getTracks().forEach(track => {
+                  track.stop();
+              });
+          }
+
+          facingMode = facingMode == "user" ? "environment" : "user";
+
+          var opciones = {
+              audio: false,
+              video: {
+                  facingMode: facingMode, width: tamano, height: tamano
+              }
+          };
+
+
+          navigator.mediaDevices.getUserMedia(opciones)
+              .then(function(stream) {
+                  currentStream = stream;
+                  video.srcObject = currentStream;
+              })
+              .catch(function(err) {
+                  console.log("Oops, hubo un error", err);
+              })
+      }
+
+    function procesarCamara() {
+      ctx.drawImage(video, 0, 0, tamano, tamano, 0, 0, tamano, tamano);
+      setTimeout(procesarCamara, 20);
+    }
+
+    function predecir() {
+      if (modelo != null) {
+        resample_single(canvas, 100, 100, otrocanvas);
+
+        //Hacer la predicción
+        var ctx2 = otrocanvas.getContext("2d");
+        var imgData = ctx2.getImageData(0,0, 100, 100);
+
+        var arr = [];
+        var arr100 = [];
+
+        for (var p=0; p < imgData.data.length; p+= 4) {
+          var rojo = imgData.data[p] / 255;
+          var verde = imgData.data[p+1] / 255;
+          var azul = imgData.data[p+2] / 255;
+
+          var gris = (rojo+verde+azul)/3;
+
+          arr100.push([gris]);
+          if (arr100.length == 100) {
+            arr.push(arr100);
+            arr100 = [];
+          }
+        }
+
+        arr = [arr];
+
+        var resultado = tf.tidy(() => modelo.predict(tf.tensor4d(arr)).dataSync()[0]);
+
+        var respuesta;
+        if (resultado <= .5) {
+          respuesta = "🐱 Gato";
+        } else {
+          respuesta = "🐶 Perro";
+        }
+        document.getElementById("resultado").innerHTML = respuesta;
+
+      }
+
+      setTimeout(predecir, 150);
+    }
+
+    /**
+       * Hermite resize - fast image resize/resample using Hermite filter. 1 cpu version!
+       *
+       * @param {HtmlElement} canvas
+       * @param {int} width
+       * @param {int} height
+       * @param {boolean} resize_canvas if true, canvas will be resized. Optional.
+       * Cambiado por RT, resize canvas ahora es donde se pone el chiqitillllllo
+       */
+      function resample_single(canvas, width, height, resize_canvas) {
+          var width_source = canvas.width;
+          var height_source = canvas.height;
+          width = Math.round(width);
+          height = Math.round(height);
+
+          var ratio_w = width_source / width;
+          var ratio_h = height_source / height;
+          var ratio_w_half = Math.ceil(ratio_w / 2);
+          var ratio_h_half = Math.ceil(ratio_h / 2);
+
+          var ctx = canvas.getContext("2d");
+          var ctx2 = resize_canvas.getContext("2d");
+          var img = ctx.getImageData(0, 0, width_source, height_source);
+          var img2 = ctx2.createImageData(width, height);
+          var data = img.data;
+          var data2 = img2.data;
+
+          for (var j = 0; j < height; j++) {
+              for (var i = 0; i < width; i++) {
+                  var x2 = (i + j * width) * 4;
+                  var weight = 0;
+                  var weights = 0;
+                  var weights_alpha = 0;
+                  var gx_r = 0;
+                  var gx_g = 0;
+                  var gx_b = 0;
+                  var gx_a = 0;
+                  var center_y = (j + 0.5) * ratio_h;
+                  var yy_start = Math.floor(j * ratio_h);
+                  var yy_stop = Math.ceil((j + 1) * ratio_h);
+                  for (var yy = yy_start; yy < yy_stop; yy++) {
+                      var dy = Math.abs(center_y - (yy + 0.5)) / ratio_h_half;
+                      var center_x = (i + 0.5) * ratio_w;
+                      var w0 = dy * dy; //pre-calc part of w
+                      var xx_start = Math.floor(i * ratio_w);
+                      var xx_stop = Math.ceil((i + 1) * ratio_w);
+                      for (var xx = xx_start; xx < xx_stop; xx++) {
+                          var dx = Math.abs(center_x - (xx + 0.5)) / ratio_w_half;
+                          var w = Math.sqrt(w0 + dx * dx);
+                          if (w >= 1) {
+                              //pixel too far
+                              continue;
+                          }
+                          //hermite filter
+                          weight = 2 * w * w * w - 3 * w * w + 1;
+                          var pos_x = 4 * (xx + yy * width_source);
+                          //alpha
+                          gx_a += weight * data[pos_x + 3];
+                          weights_alpha += weight;
+                          //colors
+                          if (data[pos_x + 3] < 255)
+                              weight = weight * data[pos_x + 3] / 250;
+                          gx_r += weight * data[pos_x];
+                          gx_g += weight * data[pos_x + 1];
+                          gx_b += weight * data[pos_x + 2];
+                          weights += weight;
+                      }
+                  }
+                  data2[x2] = gx_r / weights;
+                  data2[x2 + 1] = gx_g / weights;
+                  data2[x2 + 2] = gx_b / weights;
+                  data2[x2 + 3] = gx_a / weights_alpha;
+              }
+          }
+
+
+          ctx2.putImageData(img2, 0, 0);
+      }
+  </script>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+logs/
+modelos/*.h5
+modelos/*.keras
+.ipynb_checkpoints/
+__pycache__/

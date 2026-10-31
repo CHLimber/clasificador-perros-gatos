@@ -1,0 +1,16 @@
+name: perrosgatos
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      - tensorflow
+      - tensorflow-datasets
+      - importlib_resources
+      - opencv-python
+      - matplotlib
+      - pandas
+      - ipykernel
+      - notebook

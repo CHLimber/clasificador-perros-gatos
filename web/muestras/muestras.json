@@ -1,0 +1,126 @@
+{
+  "fuente": "Microsoft — Kaggle Cats and Dogs Dataset (Asirra)",
+  "url": "https://www.microsoft.com/en-us/download/details.aspx?id=54765",
+  "imagenes": [
+    {
+      "archivo": "gato_8177.jpg",
+      "etiqueta": "gato",
+      "original": "PetImages/Cat/8177.jpg"
+    },
+    {
+      "archivo": "perro_169.jpg",
+      "etiqueta": "perro",
+      "original": "PetImages/Dog/169.jpg"
+    },
+    {
+      "archivo": "perro_11595.jpg",
+      "etiqueta": "perro",
+      "original": "PetImages/Dog/11595.jpg"
+    },
+    {
+      "archivo": "perro_4600.jpg",
+      "etiqueta": "perro",
+      "original": "PetImages/Dog/4600.jpg"
+    },
+    {
+      "archivo": "gato_9608.jpg",
+      "etiqueta": "gato",
+      "original": "PetImages/Cat/9608.jpg"
+    },
+    {
+      "archivo": "perro_3426.jpg",
+      "etiqueta": "perro",
+      "original": "PetImages/Dog/3426.jpg"
+    },
+    {
+      "archivo": "perro_1883.jpg",
+      "etiqueta": "perro",
+      "original": "PetImages/Dog/1883.jpg"
+    },
+    {
+      "archivo": "gato_2039.jpg",
+      "etiqueta": "gato",
+      "original": "PetImages/Cat/2039.jpg"
+    },
+    {
+      "archivo": "perro_3595.jpg",
+      "etiqueta": "perro",
+      "original": "PetImages/Dog/3595.jpg"
+    },
+    {
+      "archivo": "perro_5134.jpg",
+      "etiqueta": "perro",
+      "original": "PetImages/Dog/5134.jpg"
+    },
+    {
+      "archivo": "perro_10948.jpg",
+      "etiqueta": "perro",
+      "original": "PetImages/Dog/10948.jpg"
+    },
+    {
+      "archivo": "perro_4669.jpg",
+      "etiqueta": "perro",
+      "original": "PetImages/Dog/4669.jpg"
+    },
+    {
+      "archivo": "gato_11639.jpg",
+      "etiqueta": "gato",
+      "original": "PetImages/Cat/11639.jpg"
+    },
+    {
+      "archivo": "gato_9670.jpg",
+      "etiqueta": "gato",
+      "original": "PetImages/Cat/9670.jpg"
+    },
+    {
+      "archivo": "gato_11508.jpg",
+      "etiqueta": "gato",
+      "original": "PetImages/Cat/11508.jpg"
+    },
+    {
+      "archivo": "gato_8727.jpg",
+      "etiqueta": "gato",
+      "original": "PetImages/Cat/8727.jpg"
+    },
+    {
+      "archivo": "gato_6790.jpg",
+      "etiqueta": "gato",
+      "original": "PetImages/Cat/6790.jpg"
+    },
+    {
+      "archivo": "perro_5919.jpg",
+      "etiqueta": "perro",
+      "original": "PetImages/Dog/5919.jpg"
+    },
+    {
+      "archivo": "perro_766.jpg",
+      "etiqueta": "perro",
+      "original": "PetImages/Dog/766.jpg"
+    },
+    {
+      "archivo": "gato_9683.jpg",
+      "etiqueta": "gato",
+      "original": "PetImages/Cat/9683.jpg"
+    },
+    {
+      "archivo": "gato_2803.jpg",
+      "etiqueta": "gato",
+      "original": "PetImages/Cat/2803.jpg"
+    },
+    {
+      "archivo": "gato_2359.jpg",
+      "etiqueta": "gato",
+      "original": "PetImages/Cat/2359.jpg"
+    },
+    {
+      "archivo": "gato_10365.jpg",
+      "etiqueta": "gato",
+      "original": "PetImages/Cat/10365.jpg"
+    },
+    {
+      "archivo": "perro_3798.jpg",
+      "etiqueta": "perro",
+      "original": "PetImages/Dog/3798.jpg"
+    }
+  ]
+}
