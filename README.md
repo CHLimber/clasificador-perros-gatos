@@ -2,6 +2,8 @@
 
 Red neuronal convolucional (TensorFlow/Keras) que clasifica imágenes de perros y gatos, con una interfaz web que usa la cámara y ejecuta el modelo en el navegador con TensorFlow.js.
 
+Proyecto de la materia **Sistemas para el Soporte a la Toma de Decisiones**, docente **Jesús Bautista**.
+
 ## Estructura
 
 ```
